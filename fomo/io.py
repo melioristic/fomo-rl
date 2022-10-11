@@ -14,10 +14,9 @@
 # __status__ = Development
 # ==========================================================
 
+import h5py
 
-def read_benchmark_data(pft="beech"):
-
-    ds_path = "/data/compoundx/benchmark-dataset/"
+def read_benchmark_data(ds_path, pft="beech"):
 
     with h5py.File(ds_path + f"train_formind_{pft}_monthly.h5", "r") as f:
         Xd_train = f["Xd"][:]
