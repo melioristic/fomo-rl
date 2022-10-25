@@ -32,13 +32,13 @@ class Fomo(gym.Env):
         # namely constant and of dimension 15 (5 for each)
         self.action = np.array([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])
 
-        num_rows, num_cols = Xd_radia.shape
+        num_rows, num_cols = self.radiation.shape
 
         # Initialize (DRL) learnt feature array.
         Xdrl = np.zeros((num_rows, FEATURES_DIM))
 
         # Initial feature bin distribution.
-        action_percentages = percentages_numpy(actions_array)
+        # action_percentages = percentages_numpy(actions_array)
 
         for i in range(num_rows):
             # Calculate bin limits.
@@ -66,12 +66,12 @@ class Fomo(gym.Env):
         # The observation are all the time series? (for now)
         self.observation_space = gym.spaces.Dict(
             spaces={
-                "grid": gym.spaces.Box(low=0, high=9999, shape=(self.grid_size[0], self.grid_size[1]), dtype=np.uint8),
+                "binsize": gym.spaces.Box(low=0, high=1, shape=(1, 15)),
             })
 
     def reset(self):
         # Reset to initial state.
-        TODO
+        self.action = np.array([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])
 
         return self._get_obs()
 
@@ -84,6 +84,32 @@ class Fomo(gym.Env):
         # Agents movement
         step = action
 
+
+        # Initialize (DRL) learnt feature array.
+        Xdrl = np.zeros((num_rows, FEATURES_DIM))
+
+        # Initial feature bin distribution.
+        # action_percentages = percentages_numpy(actions_array)
+
+        for i in range(num_rows):
+            # Calculate bin limits.
+            # For radiation.
+            bin_limits_r = irregular_bins(Xd_radia[i, :], percentages_numpy(step[0:5]))
+            # For precipitation.
+            bin_limits_p = irregular_bins(Xd_preci[i, :], percentages_numpy(step[5:10]))
+            # For temperature.
+            bin_limits_t = irregular_bins(Xd_tempe[i, :], percentages_numpy(step[10:15]))
+
+            # Populate learnt feature array.
+            # Radiation.
+            Xdrl[i, 0:5] = sum_by_bins(Xd_radia[i, :], bin_limits_r)
+            # Precipitation.
+            Xdrl[i, 5:10] = sum_by_bins(Xd_preci[i, :], bin_limits_p)
+            # Temperature.
+            Xdrl[i, 10:15] = sum_by_bins(Xd_tempe[i, :], bin_limits_t)
+
+        ###
+        
         TODO
 
         done = False
