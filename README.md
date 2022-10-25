@@ -7,6 +7,9 @@ A repository to play with reinforcement learning methods for the benchmark datas
 - [ ] Outline the structure of the project
 - [ ] Write tests
 - [ ] Create environment
+- [ ] Tester Gym Environment
+- [ ] Finish the Environment
+- [ ] Add training script
 
 # Idea
 rlmethods22 
