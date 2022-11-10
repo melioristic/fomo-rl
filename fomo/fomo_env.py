@@ -1,4 +1,13 @@
 import numpy as np
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.metrics import f1_score
+
+from feature_functions import apply_drlFeatures
+
+from inputoutput import read_benchmark_data
 import gym
 import matplotlib.pyplot as plt
 
@@ -14,6 +23,8 @@ class Fomo(gym.Env):
     # as it's assumed to have the same per feature class
     # radiation, precipitation and temperature.
     FEATURES_DIM = 15
+
+    TOLERANCE = 0.001
 
     ### Reward.
     REWARD_ACCURACY = 0 # Current accuracy
