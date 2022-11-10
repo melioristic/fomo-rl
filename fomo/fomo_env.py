@@ -68,6 +68,7 @@ class Fomo(gym.Env):
         
         self.observation = bin_percentages
         self.score = f1
+        self.score_init = self.score
 
         # The action space
         self.action_space = gym.spaces.Box(np.array([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]),
@@ -79,6 +80,7 @@ class Fomo(gym.Env):
     def reset(self):
         # Reset to initial state.
         self.action = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
+        self.score = self.score_init
 
         return self._get_obs()
 
@@ -112,14 +114,14 @@ class Fomo(gym.Env):
         Ypreds = pipe.predict(Xdrl_)
         
         # calculate f1
-        f1 = f1_score(Ytest, Ypreds, average='weighted')
+        reward = f1_score(Ytest, Ypreds, average='weighted')
         ###
 
-        done = False
-
-        reward = f1
-        
         score_delta = np.abs(self.score - reward)
+        
+        self.score = reward
+                
+        done = False
 
         # Reset criterion.
         if score_delta < TOLERANCE:
