@@ -122,7 +122,7 @@ class Fomo(gym.Env):
         score_delta = np.abs(self.score - reward)
 
         # Reset criterion.
-        if if score_delta < TOLERANCE:
+        if score_delta < TOLERANCE:
             # End of episode.
             done = True
 
