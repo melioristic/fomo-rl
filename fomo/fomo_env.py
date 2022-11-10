@@ -32,7 +32,12 @@ class Fomo(gym.Env):
     def __init__(self, train, val, test):
         super(Fomo, self).__init__()
         
-        Xd, Xs, Y = train
+        self.train = train
+        self.val = val
+        self.test = test
+
+
+        Xd, Xs, Y = self.train
         Xd_radia = Xd[:,:,0,0]
         Xd_preci = Xd[:,:,1,0]
         Xd_tempe = Xd[:,:,2,0]
@@ -42,7 +47,7 @@ class Fomo(gym.Env):
         self.action= np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
         
         # Apply learnt bins to feature array.
-        Xdrl_, bin_percentages_ = apply_drlFeatures(Xd_radia, Xd_preci, Xd_tempe, action, FEATURES_DIM)
+        Xdrl, bin_percentages_ = apply_drlFeatures(Xd_radia, Xd_preci, Xd_tempe, self.action, FEATURES_DIM)
         
         # Note scaled data but all parameters are the defaults.
         # TODO change anything?
@@ -50,14 +55,14 @@ class Fomo(gym.Env):
         pipe.fit(Xdrl, Ytrain)        
         
         # Use logistic regression to predict on test dataset.
-        Xd_, Xs_, Y_ = test
+        Xd_, Xs_, Y_ = self.test
         Xd_radia_ = Xd_[:,:,0,0]
         Xd_preci_ = Xd_[:,:,1,0]
         Xd_tempe_ = Xd_[:,:,2,0]
         Ytest = (Y_ >= np.percentile(Y_, 90)) * 1
         
         # Apply learnt bins to test feature array.
-        Xdrl_, bin_percentages_= apply_drlFeatures(Xd_radia_, Xd_preci_, Xd_tempe_, action, FEATURES_DIM)
+        Xdrl_, bin_percentages= apply_drlFeatures(Xd_radia_, Xd_preci_, Xd_tempe_, self.action, FEATURES_DIM)
         # predict test instances
         Ypreds = pipe.predict(Xdrl_)
         
@@ -89,12 +94,18 @@ class Fomo(gym.Env):
         return self.observation
 
     def step(self, action):
-        # Agents movement
-        step = action
 
+        Xd, Xs, Y = self.train
+
+        Xd_radia = Xd[:,:,0,0]
+        Xd_preci = Xd[:,:,1,0]
+        Xd_tempe = Xd[:,:,2,0]
+        Ytrain = (Y >= np.percentile(Y, 90))*1
+        
         ###
+        
         # Apply learnt bins to feature array.
-        Xdrl_, bin_percentages_ = apply_drlFeatures(Xd_radia, Xd_preci, Xd_tempe, step, FEATURES_DIM)
+        Xdrl, bin_percentages_ = apply_drlFeatures(Xd_radia, Xd_preci, Xd_tempe, action, FEATURES_DIM)
         
         # Note scaled data but all parameters are the defaults.
         # TODO change anything?
@@ -102,14 +113,14 @@ class Fomo(gym.Env):
         pipe.fit(Xdrl, Ytrain)        
         
         # Use logistic regression to predict on test dataset.
-        Xd_, Xs_, Y_ = test
+        Xd_, Xs_, Y_ = self.test
         Xd_radia_ = Xd_[:,:,0,0]
         Xd_preci_ = Xd_[:,:,1,0]
         Xd_tempe_ = Xd_[:,:,2,0]
         Ytest = (Y_ >= np.percentile(Y_, 90)) * 1
         
         # Apply learnt bins to test feature array.
-        Xdrl_, bin_percentages_= apply_drlFeatures(Xd_radia_, Xd_preci_, Xd_tempe_, action, FEATURES_DIM)
+        Xdrl_, bin_percentages= apply_drlFeatures(Xd_radia_, Xd_preci_, Xd_tempe_, action, FEATURES_DIM)
         # predict test instances
         Ypreds = pipe.predict(Xdrl_)
         

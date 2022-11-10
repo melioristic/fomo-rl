@@ -4,6 +4,12 @@ def percentages_numpy(numpy_array):
     percentages = numpy_array/np.sum(numpy_array)
     return percentages
 
+def create_index(arr:np.array):
+    cumsum = np.int(np.cumsum(percentages_numpy(arr[0:5])/100 * 36))
+
+    return np.append([[0], cumsum])
+
+
 def irregular_bins(numpy_array, bin_values, cumsum = True):
     """
     Partition a numpy array given bin values that induce a distribution of irregular widths.
@@ -30,24 +36,41 @@ def apply_drlFeatures(Xd_radia, Xd_preci, Xd_tempe, actions_array, n_features=15
     # Initialize (DRL) learnt feature array.
     Xdrl = np.zeros((num_rows, n_features))
 
-    for i in range(num_rows):
-        # Calculate bin limits.
-        # For radiation.
-        bin_limits_r, percentages_r = irregular_bins(Xd_radia[i,:], percentages_numpy(actions_array[0:5]))
-        # For precipitation.
-        bin_limits_p, percentages_p = irregular_bins(Xd_preci[i,:], percentages_numpy(actions_array[5:10]))
-        # For temperature.
-        bin_limits_t, percentages_t = irregular_bins(Xd_tempe[i,:], percentages_numpy(actions_array[10:15]))
+    index_radia = create_index(actions_array[0:5])
+    index_preci = create_index(actions_array[5:10])
+    index_tempe = create_index(actions_array[10:15])
 
-        # Populate learnt feature array.
-        # Radiation.
-        Xdrl[i,0:5] = sum_by_bins(Xd_radia[i,:], bin_limits_r)
-        # Precipitation.
-        Xdrl[i,5:10] = sum_by_bins(Xd_preci[i,:], bin_limits_p)
-        # Temperature.
-        Xdrl[i,10:15] = sum_by_bins(Xd_tempe[i,:], bin_limits_t)
+  
+    for i in range(5):
+        Xdrl[:,i] = np.sum(Xd_radia[:,index_radia[i]:index_radia[i+1]])
+        Xdrl[:,5+i] = np.sum(Xd_preci[:,index_preci[i]:index_preci[i+1]])
+        Xdrl[:,10+i] = np.sum(Xd_tempe[:,index_tempe[i]:index_tempe[i+1]])
+
+
+    # Xdrl[i,0:5] =  sum_by_bins(Xd_radia[i,:], bin_limits_r)
+    # # Precipitation.
+    # Xdrl[i,5:10] = sum_by_bins(Xd_preci[i,:], bin_limits_p)
+    # # Temperature.
+    # Xdrl[i,10:15] = sum_by_bins(Xd_tempe[i,:], bin_limits_t)
+
+    # for i in range(num_rows):
+    #     # Calculate bin limits.
+    #     # For radiation.
+    #     bin_limits_r, percentages_r = irregular_bins(Xd_radia[i,:], percentages_numpy(actions_array[0:5]))
+    #     # For precipitation.
+    #     bin_limits_p, percentages_p = irregular_bins(Xd_preci[i,:], percentages_numpy(actions_array[5:10]))
+    #     # For temperature.
+    #     bin_limits_t, percentages_t = irregular_bins(Xd_tempe[i,:], percentages_numpy(actions_array[10:15]))
+
+    #     # Populate learnt feature array.
+    #     # Radiation.
+    #     Xdrl[i,0:5] =  sum_by_bins(Xd_radia[i,:], bin_limits_r)
+    #     # Precipitation.
+    #     Xdrl[i,5:10] = sum_by_bins(Xd_preci[i,:], bin_limits_p)
+    #     # Temperature.
+    #     Xdrl[i,10:15] = sum_by_bins(Xd_tempe[i,:], bin_limits_t)
         
         # Concatenate bin limit arrays.
-        bin_percentages = np.concatenate(percentages_r, percentages_p, percentages_t))
+        bin_percentages = np.concatenate(index_radia, index_preci, index_tempe)
         
     return Xdrl, bin_percentages
