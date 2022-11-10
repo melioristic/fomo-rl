@@ -31,106 +31,99 @@ class Fomo(gym.Env):
 
     def __init__(self, train, val, test):
         super(Fomo, self).__init__()
-
-        # Initialize data.
+        
         Xd, Xs, Y = train
-
-        self.radiation = Xd[:, :, 0, 0]
-        self.precipitation = Xd[:, :, 1, 0]
-        self.temperature = Xd[:, :, 2, 0]
-
-        # Initial distribution of bins for R,P,R.
-        # namely constant and of dimension 15 (5 for each)
-        self.action = np.array([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])
-
-        num_rows, num_cols = self.radiation.shape
-
-        # Initialize (DRL) learnt feature array.
-        Xdrl = np.zeros((num_rows, FEATURES_DIM))
-
-        # Initial feature bin distribution.
-        # action_percentages = percentages_numpy(actions_array)
-
-        for i in range(num_rows):
-            # Calculate bin limits.
-            # For radiation.
-            bin_limits_r = irregular_bins(Xd_radia[i, :], percentages_numpy(actions_array[0:5]))
-            # For precipitation.
-            bin_limits_p = irregular_bins(Xd_preci[i, :], percentages_numpy(actions_array[5:10]))
-            # For temperature.
-            bin_limits_t = irregular_bins(Xd_tempe[i, :], percentages_numpy(actions_array[10:15]))
-
-            # Populate learnt feature array.
-            # Radiation.
-            Xdrl[i, 0:5] = sum_by_bins(Xd_radia[i, :], bin_limits_r)
-            # Precipitation.
-            Xdrl[i, 5:10] = sum_by_bins(Xd_preci[i, :], bin_limits_p)
-            # Temperature.
-            Xdrl[i, 10:15] = sum_by_bins(Xd_tempe[i, :], bin_limits_t)
+        Xd_radia = Xd[:,:,0,0]
+        Xd_preci = Xd[:,:,1,0]
+        Xd_tempe = Xd[:,:,2,0]
+        Ytrain = (Y >= np.percentile(Y, 90))*1
+        
+        ###
+        self.action= np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
+        
+        # Apply learnt bins to feature array.
+        Xdrl_, bin_percentages_ = apply_drlFeatures(Xd_radia, Xd_preci, Xd_tempe, action, FEATURES_DIM)
+        
+        # Note scaled data but all parameters are the defaults.
+        # TODO change anything?
+        pipe = make_pipeline(StandardScaler(), LogisticRegression())
+        pipe.fit(Xdrl, Ytrain)        
+        
+        # Use logistic regression to predict on test dataset.
+        Xd_, Xs_, Y_ = test
+        Xd_radia_ = Xd_[:,:,0,0]
+        Xd_preci_ = Xd_[:,:,1,0]
+        Xd_tempe_ = Xd_[:,:,2,0]
+        Ytest = (Y_ >= np.percentile(Y_, 90)) * 1
+        
+        # Apply learnt bins to test feature array.
+        Xdrl_, bin_percentages_= apply_drlFeatures(Xd_radia_, Xd_preci_, Xd_tempe_, action, FEATURES_DIM)
+        # predict test instances
+        Ypreds = pipe.predict(Xdrl_)
+        
+        # calculate f1
+        f1 = f1_score(Ytest, Ypreds, average='weighted')
 
         ###
+        
+        self.observation = bin_percentages
+        self.score = f1
 
         # The action space
-        self.action_space = gym.spaces.Box(np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]),
-                                           np.array([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]))
+        self.action_space = gym.spaces.Box(np.array([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]),
+                                           np.array([ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]))
 
         # The observation are all the time series? (for now)
-        self.observation_space = gym.spaces.Dict(
-            spaces={
-                "binsize": gym.spaces.Box(low=0, high=1, shape=(1, 15)),
-            })
+        self.observation_space = gym.spaces.Box(low=0, high=1, shape=(1, 15))
 
     def reset(self):
         # Reset to initial state.
-        self.action = np.array([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])
+        self.action = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
 
         return self._get_obs()
 
     def _get_obs(self):
         # return observation in the format of self.observation_space
-        TODO
-        return {"Xdrl": self.Xdrl}
+        return self.observation
 
     def step(self, action):
         # Agents movement
         step = action
 
-
-        # Initialize (DRL) learnt feature array.
-        Xdrl = np.zeros((num_rows, FEATURES_DIM))
-
-        # Initial feature bin distribution.
-        # action_percentages = percentages_numpy(actions_array)
-
-        for i in range(num_rows):
-            # Calculate bin limits.
-            # For radiation.
-            bin_limits_r = irregular_bins(Xd_radia[i, :], percentages_numpy(step[0:5]))
-            # For precipitation.
-            bin_limits_p = irregular_bins(Xd_preci[i, :], percentages_numpy(step[5:10]))
-            # For temperature.
-            bin_limits_t = irregular_bins(Xd_tempe[i, :], percentages_numpy(step[10:15]))
-
-            # Populate learnt feature array.
-            # Radiation.
-            Xdrl[i, 0:5] = sum_by_bins(Xd_radia[i, :], bin_limits_r)
-            # Precipitation.
-            Xdrl[i, 5:10] = sum_by_bins(Xd_preci[i, :], bin_limits_p)
-            # Temperature.
-            Xdrl[i, 10:15] = sum_by_bins(Xd_tempe[i, :], bin_limits_t)
-
         ###
+        # Apply learnt bins to feature array.
+        Xdrl_, bin_percentages_ = apply_drlFeatures(Xd_radia, Xd_preci, Xd_tempe, step, FEATURES_DIM)
         
-        TODO
+        # Note scaled data but all parameters are the defaults.
+        # TODO change anything?
+        pipe = make_pipeline(StandardScaler(), LogisticRegression())
+        pipe.fit(Xdrl, Ytrain)        
+        
+        # Use logistic regression to predict on test dataset.
+        Xd_, Xs_, Y_ = test
+        Xd_radia_ = Xd_[:,:,0,0]
+        Xd_preci_ = Xd_[:,:,1,0]
+        Xd_tempe_ = Xd_[:,:,2,0]
+        Ytest = (Y_ >= np.percentile(Y_, 90)) * 1
+        
+        # Apply learnt bins to test feature array.
+        Xdrl_, bin_percentages_= apply_drlFeatures(Xd_radia_, Xd_preci_, Xd_tempe_, action, FEATURES_DIM)
+        # predict test instances
+        Ypreds = pipe.predict(Xdrl_)
+        
+        # calculate f1
+        f1 = f1_score(Ytest, Ypreds, average='weighted')
+        ###
 
         done = False
 
-        reward = 0
+        reward = f1
+        
+        score_delta = np.abs(self.score - reward)
 
-        # Stop when???????
-        if (TODO):
-            # Reward
-            reward = 0
+        # Reset criterion.
+        if if score_delta < TOLERANCE:
+            # End of episode.
             done = True
 
         return self._get_obs(), reward, done, {}
