@@ -1,5 +1,6 @@
 import os
 from stable_baselines3.common.env_checker import check_env
+from inputoutput import read_benchmark_data
 from fomo_env import Fomo
 
 train, val, test = read_benchmark_data()

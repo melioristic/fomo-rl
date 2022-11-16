@@ -20,7 +20,7 @@ def main():
 
     Ytrain = (Y >= np.percentile(Y, 90))*1
 
-    actions_array = np.array([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])
+    actions_array = np.array([-0.5,-0.5,1,1,1,1,1,1,1,1,1,1,1,1,1])
 
     # Currently must be divisible by 3
     # as it's assumed to have the same per feature class
@@ -28,7 +28,9 @@ def main():
     FEATURES_DIM = 15
 
     # Apply learnt bins to feature array.
-    Xdrl = apply_drlFeatures(Xd_radia, Xd_preci, Xd_tempe, actions_array, FEATURES_DIM)
+    Xdrl, bin_percentages = apply_drlFeatures(Xd_radia, Xd_preci, Xd_tempe, actions_array, FEATURES_DIM)
+
+    print(bin_percentages.shape)
 
     # Note scaled data but all parameters are the defaults.
     # TODO change anything?
@@ -46,7 +48,7 @@ def main():
     Ytest = (Y_ >= np.percentile(Y_, 90)) * 1
 
     # Apply learnt bins to test feature array.
-    Xdrl_= apply_drlFeatures(Xd_radia_, Xd_preci_, Xd_tempe_, actions_array, FEATURES_DIM)
+    Xdrl_, bin_percentages= apply_drlFeatures(Xd_radia_, Xd_preci_, Xd_tempe_, actions_array, FEATURES_DIM)
 
     # predict test instances
     Ypreds = pipe.predict(Xdrl_)
