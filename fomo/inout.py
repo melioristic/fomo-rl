@@ -15,21 +15,19 @@
 # ==========================================================
 import h5py
 
-DS_PATH = "benchmark-dataset/"
+def read_benchmark_data(path = "benchmark-dataset/", pft="beech"):
 
-def read_benchmark_data(pft="beech"):
-
-    with h5py.File(DS_PATH + f"train_formind_{pft}_monthly.h5", "r") as f:
+    with h5py.File(path + f"train_formind_{pft}_monthly.h5", "r") as f:
         Xd_train = f["Xd"][:]
         Xs_train = f["Xs"][:]
         Y_train = f["Y"][:]
 
-    with h5py.File(DS_PATH + f"val_formind_{pft}_monthly.h5", "r") as f:
+    with h5py.File(path + f"val_formind_{pft}_monthly.h5", "r") as f:
         Xd_val = f["Xd"][:]
         Xs_val = f["Xs"][:]
         Y_val = f["Y"][:]
 
-    with h5py.File(DS_PATH + f"test_formind_{pft}_monthly.h5", "r") as f:
+    with h5py.File(path + f"test_formind_{pft}_monthly.h5", "r") as f:
         Xd_test = f["Xd"][:]
         Xs_test = f["Xs"][:]
         Y_test = f["Y"][:]

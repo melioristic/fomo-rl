@@ -1,7 +1,13 @@
+##### The file should move out of this place
+
+###TODO Check log dir and configure it properly 
+
+
+
 import os
 from stable_baselines3.common.env_checker import check_env
-from inputoutput import read_benchmark_data
-from fomo_env import Fomo
+from fomo.inout import read_benchmark_data
+from fomo.env import Fomo
 
 train, val, test = read_benchmark_data()
 

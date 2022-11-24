@@ -5,13 +5,13 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.metrics import f1_score
 
-from feature_functions import apply_drlFeatures
-from feature_functions import binarize_mort
+from fomo.utils import apply_drl_features
+from fomo.utils import binarize
 
 import gym
 import matplotlib.pyplot as plt
 
-class Fomo(gym.Env):
+class FOMO(gym.Env):
     """
     Custom Environment for Stable Baseline 3 for the interpretable feature learning
     """
@@ -24,7 +24,7 @@ class Fomo(gym.Env):
     # radiation, precipitation and temperature.
 
     def __init__(self, train, val, test, features_dim=15, threshold=90, tolerance=0.001):
-        super(Fomo, self).__init__()
+        super(FOMO, self).__init__()
         
         self.train = train
         self.val = val
@@ -38,13 +38,13 @@ class Fomo(gym.Env):
         Xd_radia = Xd[:,:,0,0]
         Xd_preci = Xd[:,:,1,0]
         Xd_tempe = Xd[:,:,2,0]
-        Ytrain = binarize_mort(Y, self.threshold)
+        Ytrain = binarize(Y, self.threshold)
         
         ###
         self.action= np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
         
         # Apply learnt bins to feature array.
-        Xdrl, percentages_ = apply_drlFeatures(Xd_radia, Xd_preci, Xd_tempe, self.action, self.features_dim)
+        Xdrl, percentages_ = apply_drl_features(Xd_radia, Xd_preci, Xd_tempe, self.action, self.features_dim)
         
         # Note scaled data but all parameters are the defaults.
         # TODO change anything?
@@ -56,10 +56,10 @@ class Fomo(gym.Env):
         Xd_radia_ = Xd_[:,:,0,0]
         Xd_preci_ = Xd_[:,:,1,0]
         Xd_tempe_ = Xd_[:,:,2,0]
-        Ytest = binarize_mort(Y_, self.threshold)
+        Ytest = binarize(Y_, self.threshold)
         
         # Apply learnt bins to test feature array.
-        Xdrl_, percentages = apply_drlFeatures(Xd_radia_, Xd_preci_, Xd_tempe_, self.action, self.features_dim)
+        Xdrl_, percentages = apply_drl_features(Xd_radia_, Xd_preci_, Xd_tempe_, self.action, self.features_dim)
         # predict test instances
         Ypreds = pipe.predict(Xdrl_)
         
@@ -98,11 +98,11 @@ class Fomo(gym.Env):
         Xd_radia = Xd[:,:,0,0]
         Xd_preci = Xd[:,:,1,0]
         Xd_tempe = Xd[:,:,2,0]
-        Ytrain = binarize_mort(Y, self.threshold)
+        Ytrain = binarize(Y, self.threshold)
         
         ###
         # Apply learnt bins to feature array.
-        Xdrl, percentages = apply_drlFeatures(Xd_radia, Xd_preci, Xd_tempe, action, self.features_dim)
+        Xdrl, percentages = apply_drl_features(Xd_radia, Xd_preci, Xd_tempe, action, self.features_dim)
         self.observation = percentages
 
         # Note scaled data but all parameters are the defaults.
@@ -115,10 +115,10 @@ class Fomo(gym.Env):
         Xd_radia_ = Xd_[:,:,0,0]
         Xd_preci_ = Xd_[:,:,1,0]
         Xd_tempe_ = Xd_[:,:,2,0]
-        Ytest = binarize_mort(Y_, self.threshold)
+        Ytest = binarize(Y_, self.threshold)
         
         # Apply learnt bins to test feature array.
-        Xdrl_, percentages_ = apply_drlFeatures(Xd_radia_, Xd_preci_, Xd_tempe_, action, self.features_dim)
+        Xdrl_, percentages_ = apply_drl_features(Xd_radia_, Xd_preci_, Xd_tempe_, action, self.features_dim)
         # predict test instances
         Ypreds = pipe.predict(Xdrl_)
         

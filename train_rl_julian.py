@@ -1,28 +1,39 @@
-import os
 import time
+import os 
 
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3 import PPO
 
-from inputoutput import read_benchmark_data
-from fomo_env import Fomo
+from fomo.inout import read_benchmark_data
+from fomo.env import FOMO
+from fomo.utils import create_dir
 
-train, val, test = read_benchmark_data()
+# Read Data
+train, val, test = read_benchmark_data("/data/compoundx/benchmark-dataset/")
 
-#Logging
-log_dir = "fomo_log"
-os.makedirs(log_dir, exist_ok=True)
+#Create directories for the logs and the models
+
+
+
+#### Complete this section before running
+exp_dir = "random" # This needs to be changed
+log_dir = exp_dir + "log/"
+model_dir = exp_dir + "model/"
+
+create_dir(log_dir)
+create_dir(model_dir)
+
 
 # Instantiate the env
-env = Fomo(train = train, val = val, test = test)
+env = FOMO(train = train, val = val, test = test)
 
 # wrap it
 env = Monitor(env, log_dir)
 
 #Callback, this built-in function will periodically evaluate the model and save the best version
-eval_callback = EvalCallback(env, best_model_save_path='./model/',
-                             log_path='./model/', eval_freq=50,
+eval_callback = EvalCallback(env, best_model_save_path=model_dir,
+                             log_path=log_dir, eval_freq=50,
                              deterministic=False, render=False)
 ### Train the agent.
 max_total_step_num = 2e5
@@ -48,8 +59,8 @@ starttime = time.time()
 
 model = PPO('MultiInputPolicy', env,**PPO_model_args)
 #Load previous best model parameters, we start from that
-if os.path.exists("model/best_model_exp1.zip"):
-    model.set_parameters("model/best_model_exp1.zip")
+if os.path.exists( f"{model_dir}best_model_exp1.zip"):
+    model.set_parameters(f"{model_dir}best_model_exp1.zip")
 model.learn(max_total_step_num, callback=eval_callback)
 dt = time.time()-starttime
 

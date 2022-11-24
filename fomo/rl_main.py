@@ -5,9 +5,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.metrics import f1_score
 
-from feature_functions import apply_drlFeatures
+from fomo.utils import apply_drlFeatures
 
-from inputoutput import read_benchmark_data
+from fomo.inout import read_benchmark_data
 
 def main():
     train, val, test = read_benchmark_data()
